@@ -1,0 +1,20 @@
+[package]
+name = "calculator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wit-bindgen-rt.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "docs:calculator"
+
+[package.metadata.component.target.dependencies]
+"docs:adder" = { path = "../wit/adder" }
+
+[package.metadata.component.target]
+path = "../wit/calculator"
+world = "calculator"

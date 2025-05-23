@@ -1,0 +1,15 @@
+[package]
+name = "cmd"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wit-bindgen-rt.workspace = true
+
+[package.metadata.component.target]
+path = "../wit/calculator"
+world = "app"
+
+[package.metadata.component.target.dependencies]
+"docs:adder" = { path = "../wit/adder" }
+

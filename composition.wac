@@ -1,0 +1,6 @@
+package example:composition;
+let adder-instance = new docs:adder-impl {};
+let calc-instance = new docs:calculator-impl { add: adder-instance.add };
+let cmd-instance = new docs:app-impl { calculate: calculator-instance.calculate, ... };
+export cmd-instance["wasi:cli/run@0.2.0"];
+

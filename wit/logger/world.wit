@@ -1,6 +1,17 @@
 package component:logger@0.1.0;
 
+interface trace {
+  enum mode {
+    %record, replay
+  }
+  get-mode: func() -> mode;
+  %record: func(method: string, input: string, output: string);
+  replay: func(method: string, input: string) -> string;
+}
+
 world logger {
   import docs:adder/add@0.1.0;
   export docs:adder/add@0.1.0;
+
+  import trace;
 }

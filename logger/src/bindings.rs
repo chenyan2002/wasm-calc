@@ -3,6 +3,170 @@
 //   * runtime_path: "wit_bindgen_rt"
 #[rustfmt::skip]
 #[allow(dead_code, clippy::all)]
+pub mod component {
+    pub mod logger {
+        #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
+        pub mod trace {
+            #[used]
+            #[doc(hidden)]
+            static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
+            use super::super::super::_rt;
+            #[repr(u8)]
+            #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
+            pub enum Mode {
+                Record,
+                Replay,
+            }
+            impl ::core::fmt::Debug for Mode {
+                fn fmt(
+                    &self,
+                    f: &mut ::core::fmt::Formatter<'_>,
+                ) -> ::core::fmt::Result {
+                    match self {
+                        Mode::Record => f.debug_tuple("Mode::Record").finish(),
+                        Mode::Replay => f.debug_tuple("Mode::Replay").finish(),
+                    }
+                }
+            }
+            impl Mode {
+                #[doc(hidden)]
+                pub unsafe fn _lift(val: u8) -> Mode {
+                    if !cfg!(debug_assertions) {
+                        return ::core::mem::transmute(val);
+                    }
+                    match val {
+                        0 => Mode::Record,
+                        1 => Mode::Replay,
+                        _ => panic!("invalid enum discriminant"),
+                    }
+                }
+            }
+            #[allow(unused_unsafe, clippy::all)]
+            pub fn get_mode() -> Mode {
+                unsafe {
+                    #[cfg(target_arch = "wasm32")]
+                    #[link(wasm_import_module = "component:logger/trace@0.1.0")]
+                    unsafe extern "C" {
+                        #[link_name = "get-mode"]
+                        fn wit_import0() -> i32;
+                    }
+                    #[cfg(not(target_arch = "wasm32"))]
+                    unsafe extern "C" fn wit_import0() -> i32 {
+                        unreachable!()
+                    }
+                    let ret = unsafe { wit_import0() };
+                    Mode::_lift(ret as u8)
+                }
+            }
+            #[allow(unused_unsafe, clippy::all)]
+            pub fn record(method: &str, input: &str, output: &str) -> () {
+                unsafe {
+                    let vec0 = method;
+                    let ptr0 = vec0.as_ptr().cast::<u8>();
+                    let len0 = vec0.len();
+                    let vec1 = input;
+                    let ptr1 = vec1.as_ptr().cast::<u8>();
+                    let len1 = vec1.len();
+                    let vec2 = output;
+                    let ptr2 = vec2.as_ptr().cast::<u8>();
+                    let len2 = vec2.len();
+                    #[cfg(target_arch = "wasm32")]
+                    #[link(wasm_import_module = "component:logger/trace@0.1.0")]
+                    unsafe extern "C" {
+                        #[link_name = "record"]
+                        fn wit_import3(
+                            _: *mut u8,
+                            _: usize,
+                            _: *mut u8,
+                            _: usize,
+                            _: *mut u8,
+                            _: usize,
+                        );
+                    }
+                    #[cfg(not(target_arch = "wasm32"))]
+                    unsafe extern "C" fn wit_import3(
+                        _: *mut u8,
+                        _: usize,
+                        _: *mut u8,
+                        _: usize,
+                        _: *mut u8,
+                        _: usize,
+                    ) {
+                        unreachable!()
+                    }
+                    unsafe {
+                        wit_import3(
+                            ptr0.cast_mut(),
+                            len0,
+                            ptr1.cast_mut(),
+                            len1,
+                            ptr2.cast_mut(),
+                            len2,
+                        )
+                    };
+                }
+            }
+            #[allow(unused_unsafe, clippy::all)]
+            pub fn replay(method: &str, input: &str) -> _rt::String {
+                unsafe {
+                    #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
+                    #[cfg_attr(target_pointer_width = "32", repr(align(4)))]
+                    struct RetArea(
+                        [::core::mem::MaybeUninit<
+                            u8,
+                        >; 2 * ::core::mem::size_of::<*const u8>()],
+                    );
+                    let mut ret_area = RetArea(
+                        [::core::mem::MaybeUninit::uninit(); 2
+                            * ::core::mem::size_of::<*const u8>()],
+                    );
+                    let vec0 = method;
+                    let ptr0 = vec0.as_ptr().cast::<u8>();
+                    let len0 = vec0.len();
+                    let vec1 = input;
+                    let ptr1 = vec1.as_ptr().cast::<u8>();
+                    let len1 = vec1.len();
+                    let ptr2 = ret_area.0.as_mut_ptr().cast::<u8>();
+                    #[cfg(target_arch = "wasm32")]
+                    #[link(wasm_import_module = "component:logger/trace@0.1.0")]
+                    unsafe extern "C" {
+                        #[link_name = "replay"]
+                        fn wit_import3(
+                            _: *mut u8,
+                            _: usize,
+                            _: *mut u8,
+                            _: usize,
+                            _: *mut u8,
+                        );
+                    }
+                    #[cfg(not(target_arch = "wasm32"))]
+                    unsafe extern "C" fn wit_import3(
+                        _: *mut u8,
+                        _: usize,
+                        _: *mut u8,
+                        _: usize,
+                        _: *mut u8,
+                    ) {
+                        unreachable!()
+                    }
+                    unsafe {
+                        wit_import3(ptr0.cast_mut(), len0, ptr1.cast_mut(), len1, ptr2)
+                    };
+                    let l4 = *ptr2.add(0).cast::<*mut u8>();
+                    let l5 = *ptr2
+                        .add(::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let len6 = l5;
+                    let bytes6 = _rt::Vec::from_raw_parts(l4.cast(), len6, len6);
+                    let result7 = _rt::string_lift(bytes6);
+                    result7
+                }
+            }
+        }
+    }
+}
+#[rustfmt::skip]
+#[allow(dead_code, clippy::all)]
 pub mod docs {
     pub mod adder {
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
@@ -129,10 +293,20 @@ mod _rt {
             self as i32
         }
     }
+    pub use alloc_crate::string::String;
+    pub use alloc_crate::vec::Vec;
+    pub unsafe fn string_lift(bytes: Vec<u8>) -> String {
+        if cfg!(debug_assertions) {
+            String::from_utf8(bytes).unwrap()
+        } else {
+            String::from_utf8_unchecked(bytes)
+        }
+    }
     #[cfg(target_arch = "wasm32")]
     pub fn run_ctors_once() {
         wit_bindgen_rt::run_ctors_once();
     }
+    extern crate alloc as alloc_crate;
 }
 /// Generates `#[unsafe(no_mangle)]` functions to export the specified type as
 /// the root implementation of all generated traits.
@@ -170,13 +344,16 @@ pub(crate) use __export_logger_impl as export;
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 259] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\x86\x01\x01A\x02\x01\
-A\x04\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x03\0\x14docs:adder/ad\
-d@0.1.0\x05\0\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x04\0\x14docs:\
-adder/add@0.1.0\x05\x01\x04\0\x1dcomponent:logger/logger@0.1.0\x04\0\x0b\x0c\x01\
-\0\x06logger\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0dwit-component\x07\
-0.227.1\x10wit-bindgen-rust\x060.41.0";
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 410] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\x9d\x02\x01A\x02\x01\
+A\x06\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x03\0\x14docs:adder/ad\
+d@0.1.0\x05\0\x01B\x08\x01m\x02\x06record\x06replay\x04\0\x04mode\x03\0\0\x01@\0\
+\0\x01\x04\0\x08get-mode\x01\x02\x01@\x03\x06methods\x05inputs\x06outputs\x01\0\x04\
+\0\x06record\x01\x03\x01@\x02\x06methods\x05inputs\0s\x04\0\x06replay\x01\x04\x03\
+\0\x1ccomponent:logger/trace@0.1.0\x05\x01\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\
+\x03add\x01\0\x04\0\x14docs:adder/add@0.1.0\x05\x02\x04\0\x1dcomponent:logger/lo\
+gger@0.1.0\x04\0\x0b\x0c\x01\0\x06logger\x03\0\0\0G\x09producers\x01\x0cprocesse\
+d-by\x02\x0dwit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

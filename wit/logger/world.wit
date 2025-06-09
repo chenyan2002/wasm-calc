@@ -12,6 +12,11 @@ interface trace {
 world logger {
   import docs:adder/add@0.1.0;
   export docs:adder/add@0.1.0;
+  //include docs:adder/adder@0.1.0;
 
+  import trace;
+}
+
+world host-logger {
   import trace;
 }

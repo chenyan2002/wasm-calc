@@ -2,7 +2,7 @@ mod generated {
     wasmtime::component::bindgen!({
         path: "wit",
         world: "logger",
-        //tracing: true,
+        //include_generated_code_from_file: true,
     });
 }
 

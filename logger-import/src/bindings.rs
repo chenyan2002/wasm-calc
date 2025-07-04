@@ -90,61 +90,6 @@ pub mod docs {
             }
         }
     }
-    pub mod calculator {
-        #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
-        pub mod calculate {
-            #[used]
-            #[doc(hidden)]
-            static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
-            use super::super::super::_rt;
-            #[repr(u8)]
-            #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
-            pub enum Op {
-                Add,
-            }
-            impl ::core::fmt::Debug for Op {
-                fn fmt(
-                    &self,
-                    f: &mut ::core::fmt::Formatter<'_>,
-                ) -> ::core::fmt::Result {
-                    match self {
-                        Op::Add => f.debug_tuple("Op::Add").finish(),
-                    }
-                }
-            }
-            impl Op {
-                #[doc(hidden)]
-                pub unsafe fn _lift(val: u8) -> Op {
-                    if !cfg!(debug_assertions) {
-                        return ::core::mem::transmute(val);
-                    }
-                    match val {
-                        0 => Op::Add,
-                        _ => panic!("invalid enum discriminant"),
-                    }
-                }
-            }
-            #[allow(unused_unsafe, clippy::all)]
-            pub fn eval_expression(op: Op, x: u32, y: u32) -> u32 {
-                unsafe {
-                    #[cfg(target_arch = "wasm32")]
-                    #[link(wasm_import_module = "docs:calculator/calculate@0.1.0")]
-                    unsafe extern "C" {
-                        #[link_name = "eval-expression"]
-                        fn wit_import0(_: i32, _: i32, _: i32) -> i32;
-                    }
-                    #[cfg(not(target_arch = "wasm32"))]
-                    unsafe extern "C" fn wit_import0(_: i32, _: i32, _: i32) -> i32 {
-                        unreachable!()
-                    }
-                    let ret = unsafe {
-                        wit_import0(op.clone() as i32, _rt::as_i32(&x), _rt::as_i32(&y))
-                    };
-                    ret as u32
-                }
-            }
-        }
-    }
 }
 #[rustfmt::skip]
 #[allow(dead_code, clippy::all)]
@@ -178,72 +123,6 @@ pub mod exports {
                 }
                 #[doc(hidden)]
                 pub(crate) use __export_docs_adder_add_0_1_0_cabi;
-            }
-        }
-        pub mod calculator {
-            #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
-            pub mod calculate {
-                #[used]
-                #[doc(hidden)]
-                static __FORCE_SECTION_REF: fn() = super::super::super::super::__link_custom_section_describing_imports;
-                use super::super::super::super::_rt;
-                #[repr(u8)]
-                #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
-                pub enum Op {
-                    Add,
-                }
-                impl ::core::fmt::Debug for Op {
-                    fn fmt(
-                        &self,
-                        f: &mut ::core::fmt::Formatter<'_>,
-                    ) -> ::core::fmt::Result {
-                        match self {
-                            Op::Add => f.debug_tuple("Op::Add").finish(),
-                        }
-                    }
-                }
-                impl Op {
-                    #[doc(hidden)]
-                    pub unsafe fn _lift(val: u8) -> Op {
-                        if !cfg!(debug_assertions) {
-                            return ::core::mem::transmute(val);
-                        }
-                        match val {
-                            0 => Op::Add,
-                            _ => panic!("invalid enum discriminant"),
-                        }
-                    }
-                }
-                #[doc(hidden)]
-                #[allow(non_snake_case)]
-                pub unsafe fn _export_eval_expression_cabi<T: Guest>(
-                    arg0: i32,
-                    arg1: i32,
-                    arg2: i32,
-                ) -> i32 {
-                    #[cfg(target_arch = "wasm32")] _rt::run_ctors_once();
-                    let result0 = T::eval_expression(
-                        Op::_lift(arg0 as u8),
-                        arg1 as u32,
-                        arg2 as u32,
-                    );
-                    _rt::as_i32(result0)
-                }
-                pub trait Guest {
-                    fn eval_expression(op: Op, x: u32, y: u32) -> u32;
-                }
-                #[doc(hidden)]
-                macro_rules! __export_docs_calculator_calculate_0_1_0_cabi {
-                    ($ty:ident with_types_in $($path_to_types:tt)*) => {
-                        const _ : () = { #[unsafe (export_name =
-                        "docs:calculator/calculate@0.1.0#eval-expression")] unsafe extern
-                        "C" fn export_eval_expression(arg0 : i32, arg1 : i32, arg2 :
-                        i32,) -> i32 { unsafe { $($path_to_types)*::
-                        _export_eval_expression_cabi::<$ty > (arg0, arg1, arg2) } } };
-                    };
-                }
-                #[doc(hidden)]
-                pub(crate) use __export_docs_calculator_calculate_0_1_0_cabi;
             }
         }
     }
@@ -333,38 +212,32 @@ mod _rt {
 /// ```
 #[allow(unused_macros)]
 #[doc(hidden)]
-macro_rules! __export_root_impl {
+macro_rules! __export_imports_impl {
     ($ty:ident) => {
         self::export!($ty with_types_in self);
     };
     ($ty:ident with_types_in $($path_to_types_root:tt)*) => {
         $($path_to_types_root)*::
         exports::docs::adder::add::__export_docs_adder_add_0_1_0_cabi!($ty with_types_in
-        $($path_to_types_root)*:: exports::docs::adder::add); $($path_to_types_root)*::
-        exports::docs::calculator::calculate::__export_docs_calculator_calculate_0_1_0_cabi!($ty
-        with_types_in $($path_to_types_root)*:: exports::docs::calculator::calculate);
+        $($path_to_types_root)*:: exports::docs::adder::add);
     };
 }
 #[doc(inline)]
-pub(crate) use __export_root_impl as export;
+pub(crate) use __export_imports_impl as export;
 #[cfg(target_arch = "wasm32")]
 #[unsafe(
-    link_section = "component-type:wit-bindgen:0.41.0:component:recorder:root:encoded world"
+    link_section = "component-type:wit-bindgen:0.41.0:component:recorder:imports:encoded world"
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 498] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xf7\x02\x01A\x02\x01\
-A\x0a\x01B\x02\x01@\x03\x06methods\x04argss\x03rets\x01\0\x04\0\x06record\x01\0\x03\
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 326] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xc8\x01\x01A\x02\x01\
+A\x06\x01B\x02\x01@\x03\x06methods\x04argss\x03rets\x01\0\x04\0\x06record\x01\0\x03\
 \0\x1acomponent:recorder/logging\x05\0\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03\
-add\x01\0\x03\0\x14docs:adder/add@0.1.0\x05\x01\x01B\x04\x01m\x01\x03add\x04\0\x02\
-op\x03\0\0\x01@\x03\x02op\x01\x01xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\x03\
-\0\x1fdocs:calculator/calculate@0.1.0\x05\x02\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\
-\0\x03add\x01\0\x04\0\x14docs:adder/add@0.1.0\x05\x03\x01B\x04\x01m\x01\x03add\x04\
-\0\x02op\x03\0\0\x01@\x03\x02op\x01\x01xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\
-\x04\0\x1fdocs:calculator/calculate@0.1.0\x05\x04\x04\0\x17component:recorder/ro\
-ot\x04\0\x0b\x0a\x01\0\x04root\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0d\
-wit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
+add\x01\0\x03\0\x14docs:adder/add@0.1.0\x05\x01\x01B\x02\x01@\x02\x01ay\x01by\0y\
+\x04\0\x03add\x01\0\x04\0\x14docs:adder/add@0.1.0\x05\x02\x04\0\x1acomponent:rec\
+order/imports\x04\0\x0b\x0d\x01\0\x07imports\x03\0\0\0G\x09producers\x01\x0cproc\
+essed-by\x02\x0dwit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

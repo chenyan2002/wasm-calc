@@ -1,0 +1,25 @@
+[package]
+name = "logger-export"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasm-wave = "0.233.0"
+wit-bindgen-rt = { workspace = true, features = ["bitflags"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "component:recorder"
+
+[package.metadata.component.dependencies]
+
+[package.metadata.component.target.dependencies]
+"docs:adder" = { path = "../wit/logger/deps/adder" }
+"docs:calculator" = { path = "../wit/logger/deps/calculator" }
+
+[package.metadata.component.target]
+path = "../wit/logger"
+world = "exports"
+

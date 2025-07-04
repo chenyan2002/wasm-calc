@@ -2,7 +2,6 @@
 mod bindings;
 
 use bindings::component::recorder::logging::record;
-use bindings::exports::docs::adder::add::Guest as AddGuest;
 use bindings::exports::docs::calculator::calculate::{Guest as CalcGuest, Op};
 
 use wasm_wave::wasm::WasmValue;
@@ -12,21 +11,6 @@ use wasm_wave::{
 };
 
 struct Component;
-
-impl AddGuest for Component {
-    fn add(a: u32, b: u32) -> u32 {
-        use bindings::docs::adder::add::add;
-        let ret = add(a, b);
-        let input: Value = (a, b).into();
-        let res: Value = ret.into();
-        record(
-            "add",
-            &to_string(&input).unwrap(),
-            &to_string(&res).unwrap(),
-        );
-        ret
-    }
-}
 
 impl CalcGuest for Component {
     fn eval_expression(op: Op, x: u32, y: u32) -> u32 {

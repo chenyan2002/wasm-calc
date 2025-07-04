@@ -1,8 +1,9 @@
 #[allow(warnings)]
 mod bindings;
 
-use bindings::component::logger::trace::{Mode, get_mode, record, replay};
-use bindings::exports::docs::adder::add::Guest;
+use bindings::component::recorder::logging::record;
+use bindings::exports::docs::adder::add::Guest as AddGuest;
+use bindings::exports::docs::calculator::calculate::{Guest as CalcGuest, Op};
 
 use wasm_wave::wasm::WasmValue;
 use wasm_wave::{
@@ -12,27 +13,37 @@ use wasm_wave::{
 
 struct Component;
 
-impl Guest for Component {
+impl AddGuest for Component {
     fn add(a: u32, b: u32) -> u32 {
-        match get_mode() {
-            Mode::Replay => {
-                let input: Value = (a, b).into();
-                let res = replay("add", &to_string(&input).unwrap());
-                from_str::<Value>(&Type::U32, &res).unwrap().unwrap_u32()
-            }
-            Mode::Record => {
-                use bindings::docs::adder::add::add;
-                let ret = add(a, b);
-                let input: Value = (a, b).into();
-                let res: Value = ret.into();
-                record(
-                    "add",
-                    &to_string(&input).unwrap(),
-                    &to_string(&res).unwrap(),
-                );
-                ret
-            }
-        }
+        use bindings::docs::adder::add::add;
+        let ret = add(a, b);
+        let input: Value = (a, b).into();
+        let res: Value = ret.into();
+        record(
+            "add",
+            &to_string(&input).unwrap(),
+            &to_string(&res).unwrap(),
+        );
+        ret
+    }
+}
+
+impl CalcGuest for Component {
+    fn eval_expression(op: Op, x: u32, y: u32) -> u32 {
+        use bindings::docs::calculator::calculate::{eval_expression, Op as ImportOp};
+        let op = match op {
+            Op::Add => ImportOp::Add,
+        };
+        let ret = eval_expression(op, x, y);
+        let op_ty = Type::enum_ty(["Add"]).unwrap();
+        let val_op = match op {
+            ImportOp::Add => Value::make_enum(&op_ty, "Add").unwrap(),
+        };
+        let input_ty = Type::tuple([op_ty, Type::U32, Type::U32]).unwrap();
+        let input = Value::make_tuple(&input_ty, [val_op, x.into(), y.into()]).unwrap();
+        let res: Value = ret.into();
+        record("eval_expression", &to_string(&input).unwrap(), &to_string(&res).unwrap());
+        ret
     }
 }
 

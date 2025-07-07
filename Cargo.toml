@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "cmd",
-  "calculator", "logger", "replay", "adder"]
+  "calculator", "logger-import", "logger-export", "replay", "adder"]
 resolver = "2"
 
 [workspace.dependencies]

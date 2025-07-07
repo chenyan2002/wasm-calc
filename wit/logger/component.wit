@@ -1,0 +1,19 @@
+package component:recorder;
+
+interface logging {
+  %record: func(method: string, args: string, ret: string);
+}
+
+world imports {
+  import logging;  
+
+  import docs:adder/add@0.1.0;
+  export docs:adder/add@0.1.0;
+}
+world exports {
+  import logging;
+
+  import docs:calculator/calculate@0.1.0;
+  export docs:calculator/calculate@0.1.0;
+}
+

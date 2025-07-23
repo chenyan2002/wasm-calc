@@ -3,6 +3,7 @@ package root:recorder;
 world logger {
   import component:recorder/logging;
   import docs:adder/add@0.1.0;
+  import docs:calculator/res@0.1.0;
 
   export docs:calculator/calculate@0.1.0;
 }

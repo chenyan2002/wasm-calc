@@ -1,5 +1,12 @@
 package docs:calculator@0.1.0;
 
+interface res {
+   resource res {
+    constructor();
+    write: func(x: u32);
+   }
+}
+
 interface calculate {
     enum op {
         add,
@@ -9,6 +16,7 @@ interface calculate {
 
 world calculator {
     export calculate;
+    import res;
     import docs:adder/add@0.1.0;
 }
 

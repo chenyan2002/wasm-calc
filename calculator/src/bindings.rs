@@ -30,6 +30,110 @@ pub mod docs {
             }
         }
     }
+    pub mod calculator {
+        #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
+        pub mod res {
+            #[used]
+            #[doc(hidden)]
+            static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
+            use super::super::super::_rt;
+            #[derive(Debug)]
+            #[repr(transparent)]
+            pub struct Res {
+                handle: _rt::Resource<Res>,
+            }
+            impl Res {
+                #[doc(hidden)]
+                pub unsafe fn from_handle(handle: u32) -> Self {
+                    Self {
+                        handle: unsafe { _rt::Resource::from_handle(handle) },
+                    }
+                }
+                #[doc(hidden)]
+                pub fn take_handle(&self) -> u32 {
+                    _rt::Resource::take_handle(&self.handle)
+                }
+                #[doc(hidden)]
+                pub fn handle(&self) -> u32 {
+                    _rt::Resource::handle(&self.handle)
+                }
+            }
+            unsafe impl _rt::WasmResource for Res {
+                #[inline]
+                unsafe fn drop(_handle: u32) {
+                    #[cfg(not(target_arch = "wasm32"))]
+                    unreachable!();
+                    #[cfg(target_arch = "wasm32")]
+                    {
+                        #[link(wasm_import_module = "docs:calculator/res@0.1.0")]
+                        unsafe extern "C" {
+                            #[link_name = "[resource-drop]res"]
+                            fn drop(_: u32);
+                        }
+                        unsafe { drop(_handle) };
+                    }
+                }
+            }
+            impl Res {
+                #[allow(unused_unsafe, clippy::all)]
+                pub fn new() -> Self {
+                    unsafe {
+                        #[cfg(target_arch = "wasm32")]
+                        #[link(wasm_import_module = "docs:calculator/res@0.1.0")]
+                        unsafe extern "C" {
+                            #[link_name = "[constructor]res"]
+                            fn wit_import0() -> i32;
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        unsafe extern "C" fn wit_import0() -> i32 {
+                            unreachable!()
+                        }
+                        let ret = unsafe { wit_import0() };
+                        unsafe { Res::from_handle(ret as u32) }
+                    }
+                }
+            }
+            impl Res {
+                #[allow(unused_unsafe, clippy::all)]
+                pub fn write(&self, x: u32) -> () {
+                    unsafe {
+                        #[cfg(target_arch = "wasm32")]
+                        #[link(wasm_import_module = "docs:calculator/res@0.1.0")]
+                        unsafe extern "C" {
+                            #[link_name = "[method]res.write"]
+                            fn wit_import0(_: i32, _: i32);
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        unsafe extern "C" fn wit_import0(_: i32, _: i32) {
+                            unreachable!()
+                        }
+                        unsafe { wit_import0((self).handle() as i32, _rt::as_i32(&x)) };
+                    }
+                }
+            }
+            impl Res {
+                #[allow(unused_unsafe, clippy::all)]
+                pub fn has(&self, x: u32) -> bool {
+                    unsafe {
+                        #[cfg(target_arch = "wasm32")]
+                        #[link(wasm_import_module = "docs:calculator/res@0.1.0")]
+                        unsafe extern "C" {
+                            #[link_name = "[method]res.has"]
+                            fn wit_import0(_: i32, _: i32) -> i32;
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        unsafe extern "C" fn wit_import0(_: i32, _: i32) -> i32 {
+                            unreachable!()
+                        }
+                        let ret = unsafe {
+                            wit_import0((self).handle() as i32, _rt::as_i32(&x))
+                        };
+                        _rt::bool_lift(ret as u8)
+                    }
+                }
+            }
+        }
+    }
 }
 #[rustfmt::skip]
 #[allow(dead_code, clippy::all)]
@@ -106,6 +210,80 @@ pub mod exports {
 #[rustfmt::skip]
 mod _rt {
     #![allow(dead_code, clippy::all)]
+    use core::fmt;
+    use core::marker;
+    use core::sync::atomic::{AtomicU32, Ordering::Relaxed};
+    /// A type which represents a component model resource, either imported or
+    /// exported into this component.
+    ///
+    /// This is a low-level wrapper which handles the lifetime of the resource
+    /// (namely this has a destructor). The `T` provided defines the component model
+    /// intrinsics that this wrapper uses.
+    ///
+    /// One of the chief purposes of this type is to provide `Deref` implementations
+    /// to access the underlying data when it is owned.
+    ///
+    /// This type is primarily used in generated code for exported and imported
+    /// resources.
+    #[repr(transparent)]
+    pub struct Resource<T: WasmResource> {
+        handle: AtomicU32,
+        _marker: marker::PhantomData<T>,
+    }
+    /// A trait which all wasm resources implement, namely providing the ability to
+    /// drop a resource.
+    ///
+    /// This generally is implemented by generated code, not user-facing code.
+    #[allow(clippy::missing_safety_doc)]
+    pub unsafe trait WasmResource {
+        /// Invokes the `[resource-drop]...` intrinsic.
+        unsafe fn drop(handle: u32);
+    }
+    impl<T: WasmResource> Resource<T> {
+        #[doc(hidden)]
+        pub unsafe fn from_handle(handle: u32) -> Self {
+            debug_assert!(handle != u32::MAX);
+            Self {
+                handle: AtomicU32::new(handle),
+                _marker: marker::PhantomData,
+            }
+        }
+        /// Takes ownership of the handle owned by `resource`.
+        ///
+        /// Note that this ideally would be `into_handle` taking `Resource<T>` by
+        /// ownership. The code generator does not enable that in all situations,
+        /// unfortunately, so this is provided instead.
+        ///
+        /// Also note that `take_handle` is in theory only ever called on values
+        /// owned by a generated function. For example a generated function might
+        /// take `Resource<T>` as an argument but then call `take_handle` on a
+        /// reference to that argument. In that sense the dynamic nature of
+        /// `take_handle` should only be exposed internally to generated code, not
+        /// to user code.
+        #[doc(hidden)]
+        pub fn take_handle(resource: &Resource<T>) -> u32 {
+            resource.handle.swap(u32::MAX, Relaxed)
+        }
+        #[doc(hidden)]
+        pub fn handle(resource: &Resource<T>) -> u32 {
+            resource.handle.load(Relaxed)
+        }
+    }
+    impl<T: WasmResource> fmt::Debug for Resource<T> {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.debug_struct("Resource").field("handle", &self.handle).finish()
+        }
+    }
+    impl<T: WasmResource> Drop for Resource<T> {
+        fn drop(&mut self) {
+            unsafe {
+                match self.handle.load(Relaxed) {
+                    u32::MAX => {}
+                    other => T::drop(other),
+                }
+            }
+        }
+    }
     pub fn as_i32<T: AsI32>(t: T) -> i32 {
         t.as_i32()
     }
@@ -165,6 +343,17 @@ mod _rt {
             self as i32
         }
     }
+    pub unsafe fn bool_lift(val: u8) -> bool {
+        if cfg!(debug_assertions) {
+            match val {
+                0 => false,
+                1 => true,
+                _ => panic!("invalid bool discriminant"),
+            }
+        } else {
+            val != 0
+        }
+    }
     #[cfg(target_arch = "wasm32")]
     pub fn run_ctors_once() {
         wit_bindgen_rt::run_ctors_once();
@@ -206,14 +395,17 @@ pub(crate) use __export_calculator_impl as export;
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 308] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xb3\x01\x01A\x02\x01\
-A\x04\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x03\0\x14docs:adder/ad\
-d@0.1.0\x05\0\x01B\x04\x01m\x01\x03add\x04\0\x02op\x03\0\0\x01@\x03\x02op\x01\x01\
-xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\x04\0\x1fdocs:calculator/calculate@\
-0.1.0\x05\x01\x04\0\x20docs:calculator/calculator@0.1.0\x04\0\x0b\x10\x01\0\x0ac\
-alculator\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0dwit-component\x070.\
-227.1\x10wit-bindgen-rust\x060.41.0";
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 451] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xc2\x02\x01A\x02\x01\
+A\x06\x01B\x09\x04\0\x03res\x03\x01\x01i\0\x01@\0\0\x01\x04\0\x10[constructor]re\
+s\x01\x02\x01h\0\x01@\x02\x04self\x03\x01xy\x01\0\x04\0\x11[method]res.write\x01\
+\x04\x01@\x02\x04self\x03\x01xy\0\x7f\x04\0\x0f[method]res.has\x01\x05\x03\0\x19\
+docs:calculator/res@0.1.0\x05\0\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\
+\0\x03\0\x14docs:adder/add@0.1.0\x05\x01\x01B\x04\x01m\x01\x03add\x04\0\x02op\x03\
+\0\0\x01@\x03\x02op\x01\x01xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\x04\0\x1f\
+docs:calculator/calculate@0.1.0\x05\x02\x04\0\x20docs:calculator/calculator@0.1.\
+0\x04\0\x0b\x10\x01\0\x0acalculator\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\
+\x0dwit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

@@ -6,7 +6,8 @@ interface logging {
 
 world imports {
   import logging;  
-
+  import docs:calculator/res@0.1.0;
+  export docs:calculator/res@0.1.0;
   import docs:adder/add@0.1.0;
   export docs:adder/add@0.1.0;
 }

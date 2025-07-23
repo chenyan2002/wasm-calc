@@ -1,10 +1,11 @@
-use wasmtime::component::{Component, Linker, ResourceTable};
+use wasmtime::component::{Component, Linker, ResourceTable, Resource};
 use wasmtime::*;
 use wasmtime_wasi::p2::{IoView, WasiCtx, WasiCtxBuilder, WasiView, add_to_linker_sync};
 
 mod bindings;
 
-use std::collections::VecDeque;
+use std::collections::{VecDeque, BTreeSet};
+use bindings::docs::calculator::res::Res;
 
 struct Logger {
     wasi_ctx: WasiCtx,
@@ -27,11 +28,32 @@ impl bindings::docs::adder::add::Host for Logger {
     fn add(&mut self, a: u32, b: u32) -> u32 { a + b }
 }
 
+pub struct Set(BTreeSet<u32>);
+impl bindings::docs::calculator::res::Host for Logger {}
+impl bindings::docs::calculator::res::HostRes for Logger {
+    fn new(&mut self) -> Resource<Res> {
+        let id = self.resource_table.push(Set(BTreeSet::default())).unwrap();
+        id
+    }
+    fn write(&mut self, res: Resource<Res>, x: u32) {
+        debug_assert!(!res.owned());
+        let obj: &mut Set = self.resource_table.get_mut(&res).unwrap();
+        obj.0.insert(x);
+        println!("{res:?}: {x}");
+    }
+    fn drop(&mut self, res: Resource<Res>) -> Result<()> {
+        debug_assert!(res.owned());
+        let _obj = self.resource_table.delete(res)?;
+        Ok(())
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     let engine = Engine::default();
     let mut linker = Linker::<Logger>::new(&engine);
     bindings::component::recorder::logging::add_to_linker(&mut linker, |logger| logger)?;
     bindings::docs::adder::add::add_to_linker(&mut linker, |logger| logger)?;
+    bindings::docs::calculator::res::add_to_linker(&mut linker, |logger| logger)?;
     add_to_linker_sync(&mut linker)?;
     let wasi = WasiCtxBuilder::new().inherit_stdio().inherit_args().build();
     let state = Logger {
@@ -41,7 +63,7 @@ fn main() -> anyhow::Result<()> {
     };
     let mut store = Store::new(&engine, state);
 
-    let component = Component::from_file(&engine, "../target/wasm32-wasip1/release/composed.wasm")?;
+    let component = Component::from_file(&engine, "../target/wasm32-wasip1/debug/composed.wasm")?;
     let bindings = bindings::Logger::instantiate(&mut store, &component, &linker)?;
     use bindings::exports::docs::calculator::calculate::Op;
     bindings.docs_calculator_calculate().call_eval_expression(&mut store, Op::Add, 3, 4)?;

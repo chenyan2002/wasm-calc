@@ -12,6 +12,20 @@ use wasm_wave::{
 
 struct Component;
 
+impl bindings::exports::docs::calculator::res::GuestRes for bindings::docs::calculator::res::Res {
+    fn new() -> Self {
+        Self::new()
+    }
+    fn write(&self, x: u32) {
+        //let resource = unsafe { Self::from_handle(self.handle()) };
+        //resource.write(x)
+        self.write(x)
+    }
+}
+impl bindings::exports::docs::calculator::res::Guest for Component {
+    type Res = bindings::docs::calculator::res::Res;
+}
+
 impl AddGuest for Component {
     fn add(a: u32, b: u32) -> u32 {
         use bindings::docs::adder::add::add;

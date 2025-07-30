@@ -28,7 +28,9 @@ impl bindings::docs::adder::add::Host for Logger {
     fn add(&mut self, a: u32, b: u32) -> u32 { a + b }
 }
 
+#[derive(Clone)]
 pub struct Set(BTreeSet<u32>);
+
 impl bindings::docs::calculator::res::Host for Logger {}
 impl bindings::docs::calculator::res::HostRes for Logger {
     fn new(&mut self) -> Resource<Res> {
@@ -40,6 +42,11 @@ impl bindings::docs::calculator::res::HostRes for Logger {
         let obj: &mut Set = self.resource_table.get_mut(&res).unwrap();
         obj.0.insert(x);
         println!("{res:?}: {x}");
+    }
+    fn read(&mut self, res: Resource<Res>) -> Resource<Res> {
+        let obj = self.resource_table.get(&res).unwrap();
+        let id = self.resource_table.push(obj.clone()).unwrap();
+        id
     }
     fn drop(&mut self, res: Resource<Res>) -> Result<()> {
         debug_assert!(res.owned());

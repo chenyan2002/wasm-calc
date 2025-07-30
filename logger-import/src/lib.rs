@@ -12,14 +12,30 @@ use wasm_wave::{
 
 struct Component;
 
+impl Into<bindings::docs::calculator::res::Res> for bindings::exports::docs::calculator::res::Res {
+    fn into(self) -> bindings::docs::calculator::res::Res {
+        self.into_inner()
+    }
+}
+impl Into<bindings::exports::docs::calculator::res::Res> for bindings::docs::calculator::res::Res {
+    fn into(self) -> bindings::exports::docs::calculator::res::Res {
+        bindings::exports::docs::calculator::res::Res::new(self)
+    }
+}
+
 impl bindings::exports::docs::calculator::res::GuestRes for bindings::docs::calculator::res::Res {
     fn new() -> Self {
         Self::new()
     }
     fn write(&self, x: u32) {
-        //let resource = unsafe { Self::from_handle(self.handle()) };
+        //let resource = unsafe { Self::from_handle(self.take_handle()) };
         //resource.write(x)
         self.write(x)
+    }
+    fn read(x: bindings::exports::docs::calculator::res::Res) -> bindings::exports::docs::calculator::res::Res {
+        //let ret = Self::read(x.into_inner());
+        //bindings::exports::docs::calculator::res::Res::new(ret)
+        Self::read(x.into()).into()
     }
 }
 impl bindings::exports::docs::calculator::res::Guest for Component {

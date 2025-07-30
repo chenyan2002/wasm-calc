@@ -12,6 +12,9 @@ impl Guest for Component {
         let res = Res::new();
         res.write(x);
         res.write(y);
+        let res = Res::read(res);
+        res.write(42);
+        res.write(43);
         match op {
             Op::Add => add(x, y),
         }

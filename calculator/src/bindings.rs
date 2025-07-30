@@ -113,22 +113,20 @@ pub mod docs {
             }
             impl Res {
                 #[allow(unused_unsafe, clippy::all)]
-                pub fn has(&self, x: u32) -> bool {
+                pub fn read(x: Res) -> Res {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
                         #[link(wasm_import_module = "docs:calculator/res@0.1.0")]
                         unsafe extern "C" {
-                            #[link_name = "[method]res.has"]
-                            fn wit_import0(_: i32, _: i32) -> i32;
+                            #[link_name = "[static]res.read"]
+                            fn wit_import0(_: i32) -> i32;
                         }
                         #[cfg(not(target_arch = "wasm32"))]
-                        unsafe extern "C" fn wit_import0(_: i32, _: i32) -> i32 {
+                        unsafe extern "C" fn wit_import0(_: i32) -> i32 {
                             unreachable!()
                         }
-                        let ret = unsafe {
-                            wit_import0((self).handle() as i32, _rt::as_i32(&x))
-                        };
-                        _rt::bool_lift(ret as u8)
+                        let ret = unsafe { wit_import0((&x).take_handle() as i32) };
+                        unsafe { Res::from_handle(ret as u32) }
                     }
                 }
             }
@@ -343,17 +341,6 @@ mod _rt {
             self as i32
         }
     }
-    pub unsafe fn bool_lift(val: u8) -> bool {
-        if cfg!(debug_assertions) {
-            match val {
-                0 => false,
-                1 => true,
-                _ => panic!("invalid bool discriminant"),
-            }
-        } else {
-            val != 0
-        }
-    }
     #[cfg(target_arch = "wasm32")]
     pub fn run_ctors_once() {
         wit_bindgen_rt::run_ctors_once();
@@ -395,17 +382,17 @@ pub(crate) use __export_calculator_impl as export;
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 451] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xc2\x02\x01A\x02\x01\
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 446] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xbd\x02\x01A\x02\x01\
 A\x06\x01B\x09\x04\0\x03res\x03\x01\x01i\0\x01@\0\0\x01\x04\0\x10[constructor]re\
 s\x01\x02\x01h\0\x01@\x02\x04self\x03\x01xy\x01\0\x04\0\x11[method]res.write\x01\
-\x04\x01@\x02\x04self\x03\x01xy\0\x7f\x04\0\x0f[method]res.has\x01\x05\x03\0\x19\
-docs:calculator/res@0.1.0\x05\0\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\
-\0\x03\0\x14docs:adder/add@0.1.0\x05\x01\x01B\x04\x01m\x01\x03add\x04\0\x02op\x03\
-\0\0\x01@\x03\x02op\x01\x01xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\x04\0\x1f\
-docs:calculator/calculate@0.1.0\x05\x02\x04\0\x20docs:calculator/calculator@0.1.\
-0\x04\0\x0b\x10\x01\0\x0acalculator\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\
-\x0dwit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
+\x04\x01@\x01\x01x\x01\0\x01\x04\0\x10[static]res.read\x01\x05\x03\0\x19docs:cal\
+culator/res@0.1.0\x05\0\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x03\0\
+\x14docs:adder/add@0.1.0\x05\x01\x01B\x04\x01m\x01\x03add\x04\0\x02op\x03\0\0\x01\
+@\x03\x02op\x01\x01xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\x04\0\x1fdocs:ca\
+lculator/calculate@0.1.0\x05\x02\x04\0\x20docs:calculator/calculator@0.1.0\x04\0\
+\x0b\x10\x01\0\x0acalculator\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0d\
+wit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

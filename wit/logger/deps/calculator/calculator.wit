@@ -4,6 +4,7 @@ interface res {
   resource res {
     constructor();
     write: func(x: u32);
+    read: static func(x: res) -> res;
   }
 }
 

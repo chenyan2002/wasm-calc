@@ -171,6 +171,25 @@ pub mod docs {
                     }
                 }
             }
+            impl Res {
+                #[allow(unused_unsafe, clippy::all)]
+                pub fn read(x: Res) -> Res {
+                    unsafe {
+                        #[cfg(target_arch = "wasm32")]
+                        #[link(wasm_import_module = "docs:calculator/res@0.1.0")]
+                        unsafe extern "C" {
+                            #[link_name = "[static]res.read"]
+                            fn wit_import0(_: i32) -> i32;
+                        }
+                        #[cfg(not(target_arch = "wasm32"))]
+                        unsafe extern "C" fn wit_import0(_: i32) -> i32 {
+                            unreachable!()
+                        }
+                        let ret = unsafe { wit_import0((&x).take_handle() as i32) };
+                        unsafe { Res::from_handle(ret as u32) }
+                    }
+                }
+            }
         }
     }
 }
@@ -355,6 +374,15 @@ pub mod exports {
                         arg1 as u32,
                     );
                 }
+                #[doc(hidden)]
+                #[allow(non_snake_case)]
+                pub unsafe fn _export_static_res_read_cabi<T: GuestRes>(
+                    arg0: i32,
+                ) -> i32 {
+                    #[cfg(target_arch = "wasm32")] _rt::run_ctors_once();
+                    let result0 = T::read(unsafe { Res::from_handle(arg0 as u32) });
+                    (result0).take_handle() as i32
+                }
                 pub trait Guest {
                     type Res: GuestRes;
                 }
@@ -405,6 +433,7 @@ pub mod exports {
                     }
                     fn new() -> Self;
                     fn write(&self, x: u32) -> ();
+                    fn read(x: Res) -> Res;
                 }
                 #[doc(hidden)]
                 macro_rules! __export_docs_calculator_res_0_1_0_cabi {
@@ -418,11 +447,16 @@ pub mod exports {
                         "C" fn export_method_res_write(arg0 : * mut u8, arg1 : i32,) {
                         unsafe { $($path_to_types)*::
                         _export_method_res_write_cabi::<<$ty as $($path_to_types)*::
-                        Guest >::Res > (arg0, arg1) } } const _ : () = { #[doc(hidden)]
-                        #[unsafe (export_name = "docs:calculator/res@0.1.0#[dtor]res")]
-                        #[allow(non_snake_case)] unsafe extern "C" fn dtor(rep : * mut
-                        u8) { unsafe { $($path_to_types)*:: Res::dtor::< <$ty as
-                        $($path_to_types)*:: Guest >::Res > (rep) } } }; };
+                        Guest >::Res > (arg0, arg1) } } #[unsafe (export_name =
+                        "docs:calculator/res@0.1.0#[static]res.read")] unsafe extern "C"
+                        fn export_static_res_read(arg0 : i32,) -> i32 { unsafe {
+                        $($path_to_types)*:: _export_static_res_read_cabi::<<$ty as
+                        $($path_to_types)*:: Guest >::Res > (arg0) } } const _ : () = {
+                        #[doc(hidden)] #[unsafe (export_name =
+                        "docs:calculator/res@0.1.0#[dtor]res")] #[allow(non_snake_case)]
+                        unsafe extern "C" fn dtor(rep : * mut u8) { unsafe {
+                        $($path_to_types)*:: Res::dtor::< <$ty as $($path_to_types)*::
+                        Guest >::Res > (rep) } } }; };
                     };
                 }
                 #[doc(hidden)]
@@ -613,19 +647,21 @@ pub(crate) use __export_imports_impl as export;
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 544] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xa2\x03\x01A\x02\x01\
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 602] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xdc\x03\x01A\x02\x01\
 A\x0a\x01B\x02\x01@\x03\x06methods\x04argss\x03rets\x01\0\x04\0\x06record\x01\0\x03\
-\0\x1acomponent:recorder/logging\x05\0\x01B\x07\x04\0\x03res\x03\x01\x01i\0\x01@\
+\0\x1acomponent:recorder/logging\x05\0\x01B\x09\x04\0\x03res\x03\x01\x01i\0\x01@\
 \0\0\x01\x04\0\x10[constructor]res\x01\x02\x01h\0\x01@\x02\x04self\x03\x01xy\x01\
-\0\x04\0\x11[method]res.write\x01\x04\x03\0\x19docs:calculator/res@0.1.0\x05\x01\
-\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x03\0\x14docs:adder/add@0.1\
-.0\x05\x02\x01B\x07\x04\0\x03res\x03\x01\x01i\0\x01@\0\0\x01\x04\0\x10[construct\
-or]res\x01\x02\x01h\0\x01@\x02\x04self\x03\x01xy\x01\0\x04\0\x11[method]res.writ\
-e\x01\x04\x04\0\x19docs:calculator/res@0.1.0\x05\x03\x01B\x02\x01@\x02\x01ay\x01\
-by\0y\x04\0\x03add\x01\0\x04\0\x14docs:adder/add@0.1.0\x05\x04\x04\0\x1acomponen\
-t:recorder/imports\x04\0\x0b\x0d\x01\0\x07imports\x03\0\0\0G\x09producers\x01\x0c\
-processed-by\x02\x0dwit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
+\0\x04\0\x11[method]res.write\x01\x04\x01@\x01\x01x\x01\0\x01\x04\0\x10[static]r\
+es.read\x01\x05\x03\0\x19docs:calculator/res@0.1.0\x05\x01\x01B\x02\x01@\x02\x01\
+ay\x01by\0y\x04\0\x03add\x01\0\x03\0\x14docs:adder/add@0.1.0\x05\x02\x01B\x09\x04\
+\0\x03res\x03\x01\x01i\0\x01@\0\0\x01\x04\0\x10[constructor]res\x01\x02\x01h\0\x01\
+@\x02\x04self\x03\x01xy\x01\0\x04\0\x11[method]res.write\x01\x04\x01@\x01\x01x\x01\
+\0\x01\x04\0\x10[static]res.read\x01\x05\x04\0\x19docs:calculator/res@0.1.0\x05\x03\
+\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x04\0\x14docs:adder/add@0.1\
+.0\x05\x04\x04\0\x1acomponent:recorder/imports\x04\0\x0b\x0d\x01\0\x07imports\x03\
+\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0dwit-component\x070.227.1\x10wit-\
+bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

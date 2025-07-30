@@ -9,10 +9,12 @@ interface res {
 }
 
 interface calculate {
+    resource handle;
     enum op {
         add,
     }
     eval-expression: func(op: op, x: u32, y: u32) -> u32;
+    test: func(x: handle);
 }
 
 world calculator {

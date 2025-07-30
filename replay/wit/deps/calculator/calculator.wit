@@ -6,13 +6,16 @@ interface res {
     write: func(x: u32);
     read: static func(x: res) -> res;
   }
+  resource handle;
 }
 
 interface calculate {
+  use res.{handle};
   enum op {
     add,
   }
 
   eval-expression: func(op: op, x: u32, y: u32) -> u32;
+  test: func(x: handle);
 }
 

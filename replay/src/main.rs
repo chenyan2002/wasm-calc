@@ -32,6 +32,11 @@ impl bindings::docs::adder::add::Host for Logger {
 pub struct Set(BTreeSet<u32>);
 
 impl bindings::docs::calculator::res::Host for Logger {}
+impl bindings::docs::calculator::res::HostHandle for Logger {
+    fn drop(&mut self, _res: Resource<bindings::docs::calculator::res::Handle>) -> Result<()> {
+        Ok(())
+    }
+}
 impl bindings::docs::calculator::res::HostRes for Logger {
     fn new(&mut self) -> Resource<Res> {
         let id = self.resource_table.push(Set(BTreeSet::default())).unwrap();
@@ -70,7 +75,7 @@ fn main() -> anyhow::Result<()> {
     };
     let mut store = Store::new(&engine, state);
 
-    let component = Component::from_file(&engine, "../target/wasm32-wasip1/debug/composed.wasm")?;
+    let component = Component::from_file(&engine, "../target/wasm32-wasip1/debug/calculator.wasm")?;
     let bindings = bindings::Logger::instantiate(&mut store, &component, &linker)?;
     use bindings::exports::docs::calculator::calculate::Op;
     bindings.docs_calculator_calculate().call_eval_expression(&mut store, Op::Add, 3, 4)?;

@@ -144,6 +144,129 @@ pub mod exports {
                 #[doc(hidden)]
                 static __FORCE_SECTION_REF: fn() = super::super::super::super::__link_custom_section_describing_imports;
                 use super::super::super::super::_rt;
+                #[derive(Debug)]
+                #[repr(transparent)]
+                pub struct Handle {
+                    handle: _rt::Resource<Handle>,
+                }
+                type _HandleRep<T> = Option<T>;
+                impl Handle {
+                    /// Creates a new resource from the specified representation.
+                    ///
+                    /// This function will create a new resource handle by moving `val` onto
+                    /// the heap and then passing that heap pointer to the component model to
+                    /// create a handle. The owned handle is then returned as `Handle`.
+                    pub fn new<T: GuestHandle>(val: T) -> Self {
+                        Self::type_guard::<T>();
+                        let val: _HandleRep<T> = Some(val);
+                        let ptr: *mut _HandleRep<T> = _rt::Box::into_raw(
+                            _rt::Box::new(val),
+                        );
+                        unsafe { Self::from_handle(T::_resource_new(ptr.cast())) }
+                    }
+                    /// Gets access to the underlying `T` which represents this resource.
+                    pub fn get<T: GuestHandle>(&self) -> &T {
+                        let ptr = unsafe { &*self.as_ptr::<T>() };
+                        ptr.as_ref().unwrap()
+                    }
+                    /// Gets mutable access to the underlying `T` which represents this
+                    /// resource.
+                    pub fn get_mut<T: GuestHandle>(&mut self) -> &mut T {
+                        let ptr = unsafe { &mut *self.as_ptr::<T>() };
+                        ptr.as_mut().unwrap()
+                    }
+                    /// Consumes this resource and returns the underlying `T`.
+                    pub fn into_inner<T: GuestHandle>(self) -> T {
+                        let ptr = unsafe { &mut *self.as_ptr::<T>() };
+                        ptr.take().unwrap()
+                    }
+                    #[doc(hidden)]
+                    pub unsafe fn from_handle(handle: u32) -> Self {
+                        Self {
+                            handle: unsafe { _rt::Resource::from_handle(handle) },
+                        }
+                    }
+                    #[doc(hidden)]
+                    pub fn take_handle(&self) -> u32 {
+                        _rt::Resource::take_handle(&self.handle)
+                    }
+                    #[doc(hidden)]
+                    pub fn handle(&self) -> u32 {
+                        _rt::Resource::handle(&self.handle)
+                    }
+                    #[doc(hidden)]
+                    fn type_guard<T: 'static>() {
+                        use core::any::TypeId;
+                        static mut LAST_TYPE: Option<TypeId> = None;
+                        unsafe {
+                            assert!(! cfg!(target_feature = "atomics"));
+                            let id = TypeId::of::<T>();
+                            match LAST_TYPE {
+                                Some(ty) => {
+                                    assert!(
+                                        ty == id, "cannot use two types with this resource type"
+                                    )
+                                }
+                                None => LAST_TYPE = Some(id),
+                            }
+                        }
+                    }
+                    #[doc(hidden)]
+                    pub unsafe fn dtor<T: 'static>(handle: *mut u8) {
+                        Self::type_guard::<T>();
+                        let _ = unsafe {
+                            _rt::Box::from_raw(handle as *mut _HandleRep<T>)
+                        };
+                    }
+                    fn as_ptr<T: GuestHandle>(&self) -> *mut _HandleRep<T> {
+                        Handle::type_guard::<T>();
+                        T::_resource_rep(self.handle()).cast()
+                    }
+                }
+                /// A borrowed version of [`Handle`] which represents a borrowed value
+                /// with the lifetime `'a`.
+                #[derive(Debug)]
+                #[repr(transparent)]
+                pub struct HandleBorrow<'a> {
+                    rep: *mut u8,
+                    _marker: core::marker::PhantomData<&'a Handle>,
+                }
+                impl<'a> HandleBorrow<'a> {
+                    #[doc(hidden)]
+                    pub unsafe fn lift(rep: usize) -> Self {
+                        Self {
+                            rep: rep as *mut u8,
+                            _marker: core::marker::PhantomData,
+                        }
+                    }
+                    /// Gets access to the underlying `T` in this resource.
+                    pub fn get<T: GuestHandle>(&self) -> &T {
+                        let ptr = unsafe { &mut *self.as_ptr::<T>() };
+                        ptr.as_ref().unwrap()
+                    }
+                    fn as_ptr<T: 'static>(&self) -> *mut _HandleRep<T> {
+                        Handle::type_guard::<T>();
+                        self.rep.cast()
+                    }
+                }
+                unsafe impl _rt::WasmResource for Handle {
+                    #[inline]
+                    unsafe fn drop(_handle: u32) {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        unreachable!();
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            #[link(
+                                wasm_import_module = "[export]docs:calculator/calculate@0.1.0"
+                            )]
+                            unsafe extern "C" {
+                                #[link_name = "[resource-drop]handle"]
+                                fn drop(_: u32);
+                            }
+                            unsafe { drop(_handle) };
+                        }
+                    }
+                }
                 #[repr(u8)]
                 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
                 pub enum Op {
@@ -186,8 +309,62 @@ pub mod exports {
                     );
                     _rt::as_i32(result0)
                 }
+                #[doc(hidden)]
+                #[allow(non_snake_case)]
+                pub unsafe fn _export_test_cabi<T: Guest>(arg0: i32) {
+                    #[cfg(target_arch = "wasm32")] _rt::run_ctors_once();
+                    T::test(unsafe { Handle::from_handle(arg0 as u32) });
+                }
                 pub trait Guest {
+                    type Handle: GuestHandle;
                     fn eval_expression(op: Op, x: u32, y: u32) -> u32;
+                    fn test(x: Handle) -> ();
+                }
+                pub trait GuestHandle: 'static {
+                    #[doc(hidden)]
+                    unsafe fn _resource_new(val: *mut u8) -> u32
+                    where
+                        Self: Sized,
+                    {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            let _ = val;
+                            unreachable!();
+                        }
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            #[link(
+                                wasm_import_module = "[export]docs:calculator/calculate@0.1.0"
+                            )]
+                            unsafe extern "C" {
+                                #[link_name = "[resource-new]handle"]
+                                fn new(_: *mut u8) -> u32;
+                            }
+                            unsafe { new(val) }
+                        }
+                    }
+                    #[doc(hidden)]
+                    fn _resource_rep(handle: u32) -> *mut u8
+                    where
+                        Self: Sized,
+                    {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            let _ = handle;
+                            unreachable!();
+                        }
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            #[link(
+                                wasm_import_module = "[export]docs:calculator/calculate@0.1.0"
+                            )]
+                            unsafe extern "C" {
+                                #[link_name = "[resource-rep]handle"]
+                                fn rep(_: u32) -> *mut u8;
+                            }
+                            unsafe { rep(handle) }
+                        }
+                    }
                 }
                 #[doc(hidden)]
                 macro_rules! __export_docs_calculator_calculate_0_1_0_cabi {
@@ -196,7 +373,15 @@ pub mod exports {
                         "docs:calculator/calculate@0.1.0#eval-expression")] unsafe extern
                         "C" fn export_eval_expression(arg0 : i32, arg1 : i32, arg2 :
                         i32,) -> i32 { unsafe { $($path_to_types)*::
-                        _export_eval_expression_cabi::<$ty > (arg0, arg1, arg2) } } };
+                        _export_eval_expression_cabi::<$ty > (arg0, arg1, arg2) } }
+                        #[unsafe (export_name = "docs:calculator/calculate@0.1.0#test")]
+                        unsafe extern "C" fn export_test(arg0 : i32,) { unsafe {
+                        $($path_to_types)*:: _export_test_cabi::<$ty > (arg0) } } const _
+                        : () = { #[doc(hidden)] #[unsafe (export_name =
+                        "docs:calculator/calculate@0.1.0#[dtor]handle")]
+                        #[allow(non_snake_case)] unsafe extern "C" fn dtor(rep : * mut
+                        u8) { unsafe { $($path_to_types)*:: Handle::dtor::< <$ty as
+                        $($path_to_types)*:: Guest >::Handle > (rep) } } }; };
                     };
                 }
                 #[doc(hidden)]
@@ -341,10 +526,12 @@ mod _rt {
             self as i32
         }
     }
+    pub use alloc_crate::boxed::Box;
     #[cfg(target_arch = "wasm32")]
     pub fn run_ctors_once() {
         wit_bindgen_rt::run_ctors_once();
     }
+    extern crate alloc as alloc_crate;
 }
 /// Generates `#[unsafe(no_mangle)]` functions to export the specified type as
 /// the root implementation of all generated traits.
@@ -382,14 +569,15 @@ pub(crate) use __export_calculator_impl as export;
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 446] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xbd\x02\x01A\x02\x01\
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 477] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xdc\x02\x01A\x02\x01\
 A\x06\x01B\x09\x04\0\x03res\x03\x01\x01i\0\x01@\0\0\x01\x04\0\x10[constructor]re\
 s\x01\x02\x01h\0\x01@\x02\x04self\x03\x01xy\x01\0\x04\0\x11[method]res.write\x01\
 \x04\x01@\x01\x01x\x01\0\x01\x04\0\x10[static]res.read\x01\x05\x03\0\x19docs:cal\
 culator/res@0.1.0\x05\0\x01B\x02\x01@\x02\x01ay\x01by\0y\x04\0\x03add\x01\0\x03\0\
-\x14docs:adder/add@0.1.0\x05\x01\x01B\x04\x01m\x01\x03add\x04\0\x02op\x03\0\0\x01\
-@\x03\x02op\x01\x01xy\x01yy\0y\x04\0\x0feval-expression\x01\x02\x04\0\x1fdocs:ca\
+\x14docs:adder/add@0.1.0\x05\x01\x01B\x08\x04\0\x06handle\x03\x01\x01m\x01\x03ad\
+d\x04\0\x02op\x03\0\x01\x01@\x03\x02op\x02\x01xy\x01yy\0y\x04\0\x0feval-expressi\
+on\x01\x03\x01i\0\x01@\x01\x01x\x04\x01\0\x04\0\x04test\x01\x05\x04\0\x1fdocs:ca\
 lculator/calculate@0.1.0\x05\x02\x04\0\x20docs:calculator/calculator@0.1.0\x04\0\
 \x0b\x10\x01\0\x0acalculator\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0d\
 wit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
